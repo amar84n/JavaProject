@@ -35,8 +35,8 @@ function v8n() {
    *
    * When you have a validation strategy with promise-based rules, like a rule
    * that performs an API check or any other kind of asynchronous test, you
-   * should use either the function {@link core.asyncTest asyncTest} or
-   * {@link core.asyncCheck asyncCheck}. These functions produce promise based
+   * should use either the function {@link core.testAsync testAsync} or
+   * {@link core.checkAsync checkAsync}. These functions produce promise based
    * validations.
    *
    * But, if your validation strategy contains **only** synchronous rules, like
@@ -66,7 +66,7 @@ function v8n() {
    * v8n()
    *   .not.null()
    *   .someAsyncRule() // some asynchornous rule
-   *   .asyncTest("some value")
+   *   .testAsync("some value")
    *   .then(valid => {
    *      // handle the result
    *   });
@@ -145,7 +145,7 @@ let customRules = {};
  *  .string()
  *  .myCustomRule("Awesome")                   // Used like any other rule
  *  .myAsyncCustomRule("Async is awesome too") // Asynchronous rules!
- *  .asyncTest("Awesome"); // Promise
+ *  .testAsync("Awesome"); // Promise
  */
 v8n.extend = function(newRules) {
   Object.assign(customRules, newRules);
@@ -282,7 +282,7 @@ const core = {
    * @param {any} value the value to be validated
    * @returns {Promise} promise that resolves to a boolean value
    */
-  asyncTest(value) {
+  testAsync(value) {
     return executeAsyncRules(value, this.chain).then(() => true, () => false);
   },
 
@@ -304,7 +304,7 @@ const core = {
    * @returns {Promise} promise that rejects with the first-failed
    * {@link Rule rule} when value is invalid
    */
-  asyncCheck(value) {
+  checkAsync(value) {
     return executeAsyncRules(value, this.chain);
   }
 };

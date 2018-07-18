@@ -70,7 +70,7 @@ describe("execution functions", () => {
     });
   });
 
-  describe("the 'asyncTest' function", () => {
+  describe("the 'testAsync' function", () => {
     function asyncRule(expected, delay = 50) {
       return value =>
         new Promise(resolve => {
@@ -90,7 +90,7 @@ describe("execution functions", () => {
       expect(
         v8n()
           .asyncRule("Hello")
-          .asyncTest("Hello")
+          .testAsync("Hello")
       ).toBeInstanceOf(Promise);
     });
 
@@ -99,7 +99,7 @@ describe("execution functions", () => {
         v8n()
           .asyncRule("Hello")
           .not.string()
-          .asyncTest("Hello")
+          .testAsync("Hello")
       ).resolves.toBeFalsy();
     });
 
@@ -108,7 +108,7 @@ describe("execution functions", () => {
         v8n()
           .string()
           .not.asyncRule("Hello")
-          .asyncTest("Hello")
+          .testAsync("Hello")
       ).resolves.toBeFalsy();
     });
 
@@ -118,7 +118,7 @@ describe("execution functions", () => {
           v8n()
             .minLength(2)
             .asyncRule("Hello")
-            .asyncTest("Hello")
+            .testAsync("Hello")
         ).resolves.toBeTruthy();
       });
 
@@ -127,19 +127,19 @@ describe("execution functions", () => {
           v8n()
             .minLength(2)
             .asyncRule("Hello")
-            .asyncTest("Hi")
+            .testAsync("Hi")
         ).resolves.toBeFalsy();
       });
     });
   });
 
-  describe("the 'asyncCheck' function", () => {
+  describe("the 'checkAsync' function", () => {
     it("should return a promise", () => {
       expect(
         v8n()
           .minLength(2)
           .asyncRule("Hello")
-          .asyncCheck("Hello")
+          .checkAsync("Hello")
       ).toBeInstanceOf(Promise);
     });
 
@@ -148,7 +148,7 @@ describe("execution functions", () => {
         v8n()
           .minLength(2)
           .asyncRule("Hello")
-          .asyncCheck("Hello")
+          .checkAsync("Hello")
       ).resolves.toBe("Hello");
     });
 
@@ -157,7 +157,7 @@ describe("execution functions", () => {
         .minLength(2)
         .not.asyncRule("Hello");
 
-      return expect(validation.asyncCheck("Hello")).rejects.toBe(
+      return expect(validation.checkAsync("Hello")).rejects.toBe(
         validation.chain[1]
       );
     });
@@ -168,7 +168,7 @@ describe("execution functions", () => {
           v8n()
             .minLength(2)
             .asyncRule("Hello")
-            .asyncCheck("Hello")
+            .checkAsync("Hello")
         ).resolves.toBe("Hello");
       });
 
@@ -177,7 +177,7 @@ describe("execution functions", () => {
           .minLength(2)
           .asyncRule("Hello");
 
-        return expect(validation.asyncCheck("Hi")).rejects.toBe(
+        return expect(validation.checkAsync("Hi")).rejects.toBe(
           // asyncRule has failed
           validation.chain[1]
         );
@@ -813,11 +813,11 @@ describe("random tests", () => {
       .asyncRule(10, 20)
       .not.even();
 
-    await expect(validation.asyncTest("12")).resolves.toBeFalsy();
-    await expect(validation.asyncTest(12)).resolves.toBeFalsy();
-    await expect(validation.asyncTest(10)).resolves.toBeFalsy();
-    await expect(validation.asyncTest(20)).resolves.toBeFalsy();
-    await expect(validation.asyncTest(13)).resolves.toBeTruthy();
+    await expect(validation.testAsync("12")).resolves.toBeFalsy();
+    await expect(validation.testAsync(12)).resolves.toBeFalsy();
+    await expect(validation.testAsync(10)).resolves.toBeFalsy();
+    await expect(validation.testAsync(20)).resolves.toBeFalsy();
+    await expect(validation.testAsync(13)).resolves.toBeTruthy();
   });
 });
 
