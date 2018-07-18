@@ -149,7 +149,7 @@ describe("execution functions", () => {
           .minLength(2)
           .asyncRule("Hello")
           .asyncCheck("Hello")
-      ).resolves.toBeUndefined();
+      ).resolves.toBe("Hello");
     });
 
     it("should work with the 'not' modifier", () => {
@@ -169,7 +169,7 @@ describe("execution functions", () => {
             .minLength(2)
             .asyncRule("Hello")
             .asyncCheck("Hello")
-        ).resolves.toBeUndefined();
+        ).resolves.toBe("Hello");
       });
 
       it("should rejects with the failed rule when invalid", () => {

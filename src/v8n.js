@@ -311,24 +311,24 @@ const core = {
 
 function executeAsyncRules(value, rules) {
   return new Promise((resolve, reject) => {
-    executeAsyncRulesAux(value, rules, 0, resolve, reject);
+    executeAsyncRulesAux(value, rules.slice(), resolve, reject);
   });
 }
 
-function executeAsyncRulesAux(value, rules, index, resolve, reject) {
-  if (index < rules.length) {
-    const rule = rules[index];
+function executeAsyncRulesAux(value, rules, resolve, reject) {
+  if (rules.length > 0) {
+    const rule = rules.shift();
     const result = Promise.resolve(rule.fn(value));
 
     result.then(valid => {
       if (valid !== rule.invert) {
-        executeAsyncRulesAux(value, rules, index + 1, resolve, reject);
+        executeAsyncRulesAux(value, rules, resolve, reject);
       } else {
         reject(rule);
       }
     });
   } else {
-    resolve();
+    resolve(value);
   }
 }
 
