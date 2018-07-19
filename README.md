@@ -87,6 +87,61 @@ try {
 > the validation process. Look and the [ValidationException
 > docs](#validationexception) section to learn more about it.
 
+### Asynchronous based validations
+
+If your validation strategy includes some asynchronous rule, you must use the
+**async** version of the validation methods ([testAsync](#testasync) and
+[checkAsync](#checkasync)), so that you can get your validation response in a
+promise.
+
+> Look at the [testAsync](#testasync) and [checkAsync](#checkasync)
+> documentation to learn more about them.
+>
+> To learn how you define your custom asynchronous rules, check out [this
+> documentation](#extend) section.
+
+#### Async boolean based validation
+
+With the [testAsync](#testasync) function we get a promise that resolves to
+`true` (valid) or `false` (invalid):
+
+```javascript
+import v8n from "v8n";
+
+v8n()
+  .not.null()
+  .string().
+  .someAsyncRule()
+  .testAsync("Hello")
+  .then(isValid => {
+    // handle validation result
+  });
+```
+
+#### Async exception based validation
+
+With the [checkAsync](#checkasync) function we get a promise that resolves to
+the validated value when it's valid, and rejects with a
+[ValidationException](#validationexception) when it's invalid.
+
+```javascript
+v8n()
+  .number()
+  .between(10, 100)
+  .someAsyncRule()
+  .checkAsync(50)
+  .then(value => {
+    // It's valid!!!
+  })
+  .catch(exception => {
+    // It's invalid!
+  });
+```
+
+> The exception thrown by the `checkAsync` function contains information about
+> the rule which caused the validation fail, and about the validation process.
+> Look at [its documentation](#validationexception) to learn more.
+
 ### And more...
 
 There are a lot of useful standard rules for you to use already implemented in
@@ -121,7 +176,7 @@ v8n()
 ```
 
 > To learn more about custom rules and how to implement them, look at the
-> [v8n#extend](#extend) documentation section.
+> [extend](#extend) documentation section.
 
 ## The `not` modifier
 
@@ -181,6 +236,7 @@ simple way.
 -   Fluent and chainable API;
 -   Useful standard validation rules;
 -   Custom validations rules;
+-   Asynchronous validation;
 -   Reusability;
 
 ## Fluent and chainable API
@@ -288,8 +344,10 @@ v8n()
 -   [core](#core)
     -   [test](#test)
     -   [check](#check)
+    -   [testAsync](#testasync)
+    -   [checkAsync](#checkasync)
 -   [ValidationException](#validationexception)
-    -   [Parameters](#parameters-4)
+    -   [Parameters](#parameters-6)
 -   [modifiers](#modifiers)
     -   [not](#not)
 -   [rules](#rules)
@@ -345,8 +403,14 @@ called as a member function in a validation object instance.
 
 > The validation engine will inject custom rules into validation object
 > instances when needed.
+>
+> The new added rules can be used like any standard rule when building
+> validations.
+>
+> To understand how validations works, see [Validation](#validation) and
+> [rules](#rules) sections.
 
-**Custom rule structure:**
+**Basic (synchronous) custom rule structure:**
 
 A custom rule is a function that returns another function. The custom rule
 function can take parameters for its own configuration, and should return a
@@ -354,11 +418,12 @@ function which takes only a `value` as parameter. This `value` must be
 validated by this function and return `true` for valid value and `false` for
 invalid value.
 
-> The new added rules can be used like any standard rule when building
-> validations.
->
-> To understand how validations works, see [Validation](#validation) and
-> [rules](#rules) sections.
+**Asynchronous custom rule structure:\***
+
+A asynchronous custom rule looks like a basic custom rule, but instead of
+returning a function which returns `true` or `false`, it should return a
+function that returns a promise which resolves to `true` when the value is
+valid and to `false` when the value is invalid.
 
 ##### Parameters
 
@@ -367,20 +432,32 @@ invalid value.
 ##### Examples
 
 ```javascript
+// A basic (synchronous) rule
 function myCustomRule(expected) {
   return value => value === expected;
 }
 
+// An asynchronous rule
+function myAsyncCustomRule(expected) {
+  return value => {
+    // fetches data from an api, for example, and resolves with the result
+    const result = fetch("some API call")
+    return Promise.resolve(result == expected);
+  };
+}
+
 // Adding a custom rule
 v8n.extend({
-  myCustomRule
+  myCustomRule,
+  myAsyncCustomRule
 });
 
 // Using the custom rule in validation
 v8n()
  .string()
- .myCustomRule("Awesome") // Used like any other rule
- .test("Awesome"); // true
+ .myCustomRule("Awesome")                   // Used like any other rule
+ .myAsyncCustomRule("Async is awesome too") // Asynchronous rules!
+ .testAsync("Awesome"); // Promise
 ```
 
 ### Validation
@@ -409,24 +486,48 @@ call meaning.
 
 **Validating**
 
-There are two ways to perform a validation: the functions
-[test](#coretest) and [check](#corecheck).
+There are two way to perform a validation: synchronous and asynchronous.
 
-When the [test](#coretest) function is used, a validation based on a
-boolean return value is performed.
+When you have a validation strategy with promise-based rules, like a rule
+that performs an API check or any other kind of asynchronous test, you
+should use either the function [testAsync](#coretestasync) or
+[checkAsync](#corecheckasync). These functions produce promise based
+validations.
 
-When the [check](#corecheck) function is used, a validation based on
-exception throw is performed.
+But, if your validation strategy contains **only** synchronous rules, like
+`.string()`, `.minLength(2)`, whatever, you'd better use the functions
+[test](#coretest) or [check](#corecheck).
 
+> `test` functions are functions based on boolean results, that is, the
+> result of the validation will be a boolean value.
+>
+> `check` functions are functions based on first-failed rule result. The
+> result of the validation will be nothing or the rule that causes the
+> fail.
+>
 > Look at these functions documentation to know more about them.
 
 #### Examples
 
 ```javascript
+// Synchronous validation
+
 v8n() // Creates a validation object instance
  .not.null()   // Inverting the `null` rule call to `not null`
  .minLength(3) // Chaining `rules` to the validation strategy
  .test("some value");  // Executes the validation test function
+```
+
+```javascript
+// Asynchronous validation
+
+v8n()
+  .not.null()
+  .someAsyncRule() // some asynchornous rule
+  .testAsync("some value")
+  .then(valid => {
+     // handle the result
+  });
 ```
 
 ### Rule
@@ -494,6 +595,52 @@ throws a [ValidationException](#validationexception) when the value is not valid
 
 
 -   Throws **[ValidationException](#validationexception)** exception thrown when the validation fails
+
+#### testAsync
+
+Performs asynchronous boolean based validation.
+
+When this function is used it performs the validation process
+asynchronously, and it returns a promise that resolves to `true` when the
+validated value is valid and to `false` when the validated value is
+invalid.
+
+> To learn more about asynchronous validation, look at the
+> [Validation](#Validation) section.
+>
+> For a validation strategy with non promise-based rules, you'd better use
+> the [test](#test) function.
+
+##### Parameters
+
+-   `value` **any** the value to be validated
+
+Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)** promise that resolves to a boolean value
+
+#### checkAsync
+
+-   **See: ValidationException**
+
+Performs asynchronous exception based validation.
+
+When this function is used it performs the validation process
+asynchronously, and it returns a promise that resolves to the validated
+value when it's valid and rejects with a [ValidationException](#validationexception) when
+it's invalid or when an exception occurs.
+
+> To learn more about asynchronous validation, look at the
+> [Validation](#Validation) section.
+>
+> For a validation strategy with non promise-based rules, you'd better use
+> the [check](#check) function.
+
+##### Parameters
+
+-   `value` **any** the value to be validated
+
+Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)** promise that rejects with a [ValidationException](#validationexception)
+when value is valid or an exception occurs [rule](#rule) when value is
+invalid
 
 ### ValidationException
 

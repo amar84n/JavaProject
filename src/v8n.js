@@ -287,12 +287,12 @@ const core = {
   },
 
   /**
-   * Performs asynchronous failed-rule based validation.
+   * Performs asynchronous exception based validation.
    *
    * When this function is used it performs the validation process
    * asynchronously, and it returns a promise that resolves to the validated
    * value when it's valid and rejects with a {@link ValidationException} when
-   * it's invalid or when an exception occur.
+   * it's invalid or when an exception occurs.
    *
    * > To learn more about asynchronous validation, look at the
    * > [Validation](#Validation) section.
