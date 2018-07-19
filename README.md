@@ -345,9 +345,8 @@ v8n()
     -   [test](#test)
     -   [check](#check)
     -   [testAsync](#testasync)
-    -   [checkAsync](#checkasync)
 -   [ValidationException](#validationexception)
-    -   [Parameters](#parameters-6)
+    -   [Parameters](#parameters-5)
 -   [modifiers](#modifiers)
     -   [not](#not)
 -   [rules](#rules)
@@ -490,21 +489,13 @@ There are two way to perform a validation: synchronous and asynchronous.
 
 When you have a validation strategy with promise-based rules, like a rule
 that performs an API check or any other kind of asynchronous test, you
-should use either the function [testAsync](#coretestasync) or
-[checkAsync](#corecheckasync). These functions produce promise based
-validations.
+should use the [testAsync](#coretestasync) function. This function
+produces a promise based validation.
 
 But, if your validation strategy contains **only** synchronous rules, like
 `.string()`, `.minLength(2)`, whatever, you'd better use the functions
 [test](#coretest) or [check](#corecheck).
 
-> `test` functions are functions based on boolean results, that is, the
-> result of the validation will be a boolean value.
->
-> `check` functions are functions based on first-failed rule result. The
-> result of the validation will be nothing or the rule that causes the
-> fail.
->
 > Look at these functions documentation to know more about them.
 
 #### Examples
@@ -523,10 +514,12 @@ v8n() // Creates a validation object instance
 
 v8n()
   .not.null()
-  .someAsyncRule() // some asynchornous rule
+  .someAsyncRule() // some asynchronous rule
   .testAsync("some value")
-  .then(valid => {
-     // handle the result
+  .then(value => {
+    // valid
+  }).catch(ex => {
+    // invalid!
   });
 ```
 
@@ -598,30 +591,9 @@ throws a [ValidationException](#validationexception) when the value is not valid
 
 #### testAsync
 
-Performs asynchronous boolean based validation.
-
-When this function is used it performs the validation process
-asynchronously, and it returns a promise that resolves to `true` when the
-validated value is valid and to `false` when the validated value is
-invalid.
-
-> To learn more about asynchronous validation, look at the
-> [Validation](#Validation) section.
->
-> For a validation strategy with non promise-based rules, you'd better use
-> the [test](#test) function.
-
-##### Parameters
-
--   `value` **any** the value to be validated
-
-Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)** promise that resolves to a boolean value
-
-#### checkAsync
-
 -   **See: ValidationException**
 
-Performs asynchronous exception based validation.
+Performs asynchronous validation.
 
 When this function is used it performs the validation process
 asynchronously, and it returns a promise that resolves to the validated
@@ -632,7 +604,7 @@ it's invalid or when an exception occurs.
 > [Validation](#Validation) section.
 >
 > For a validation strategy with non promise-based rules, you'd better use
-> the [check](#check) function.
+> the [test](#test) and [check](#check) functions.
 
 ##### Parameters
 
@@ -647,9 +619,6 @@ Constructor function used to produce an object which contains information
 about a validation exception.
 
 **Validation exception object:**
-
-A validation exception object is thrown by the [check](#corecheck)
-function when the validation fails.
 
 It contains information about the [Rule](#rule) which was been performed
 during the fail, the value been validated and the cause of the thrown

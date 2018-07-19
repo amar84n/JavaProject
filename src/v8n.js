@@ -35,20 +35,12 @@ function v8n() {
    *
    * When you have a validation strategy with promise-based rules, like a rule
    * that performs an API check or any other kind of asynchronous test, you
-   * should use either the function {@link core.testAsync testAsync} or
-   * {@link core.checkAsync checkAsync}. These functions produce promise based
-   * validations.
+   * should use the {@link core.testAsync testAsync} function. This function
+   * produces a promise based validation.
    *
    * But, if your validation strategy contains **only** synchronous rules, like
    * `.string()`, `.minLength(2)`, whatever, you'd better use the functions
    * {@link core.test test} or {@link core.check check}.
-   *
-   * > `test` functions are functions based on boolean results, that is, the
-   * result of the validation will be a boolean value.
-   *
-   * > `check` functions are functions based on first-failed rule result. The
-   * > result of the validation will be nothing or the rule that causes the
-   * > fail.
    *
    * > Look at these functions documentation to know more about them.
    *
@@ -65,10 +57,12 @@ function v8n() {
    *
    * v8n()
    *   .not.null()
-   *   .someAsyncRule() // some asynchornous rule
+   *   .someAsyncRule() // some asynchronous rule
    *   .testAsync("some value")
-   *   .then(valid => {
-   *      // handle the result
+   *   .then(value => {
+   *     // valid
+   *   }).catch(ex => {
+   *     // invalid!
    *   });
    *
    * @module Validation
@@ -266,28 +260,7 @@ const core = {
   },
 
   /**
-   * Performs asynchronous boolean based validation.
-   *
-   * When this function is used it performs the validation process
-   * asynchronously, and it returns a promise that resolves to `true` when the
-   * validated value is valid and to `false` when the validated value is
-   * invalid.
-   *
-   * > To learn more about asynchronous validation, look at the
-   * > [Validation](#Validation) section.
-   *
-   * > For a validation strategy with non promise-based rules, you'd better use
-   * > the [test](#test) function.
-   *
-   * @param {any} value the value to be validated
-   * @returns {Promise} promise that resolves to a boolean value
-   */
-  testAsync(value) {
-    return executeAsyncRules(value, this.chain).then(() => true, () => false);
-  },
-
-  /**
-   * Performs asynchronous exception based validation.
+   * Performs asynchronous validation.
    *
    * When this function is used it performs the validation process
    * asynchronously, and it returns a promise that resolves to the validated
@@ -298,14 +271,14 @@ const core = {
    * > [Validation](#Validation) section.
    *
    * > For a validation strategy with non promise-based rules, you'd better use
-   * > the [check](#check) function.
+   * > the [test](#test) and [check](#check) functions.
    *
    * @see ValidationException
    * @param {any} value the value to be validated
    * @returns {Promise} promise that resolves to the validated value or rejects
    * with a {@link ValidationException}
    */
-  checkAsync(value) {
+  testAsync(value) {
     return executeAsyncRules(value, this.chain);
   }
 };
@@ -341,9 +314,6 @@ function executeAsyncRulesAux(value, rules, resolve, reject) {
  * about a validation exception.
  *
  * **Validation exception object:**
- *
- * A validation exception object is thrown by the {@link core.check check}
- * function when the validation fails.
  *
  * It contains information about the {@link Rule} which was been performed
  * during the fail, the value been validated and the cause of the thrown

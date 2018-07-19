@@ -71,10 +71,11 @@ describe("execution functions", () => {
   });
 
   describe("the 'testAsync' function", () => {
-    function asyncRule(expected, delay = 50) {
+    function asyncRule(expected, delay = 50, exception) {
       return value =>
         new Promise(resolve => {
           setTimeout(() => {
+            if (exception) throw exception;
             resolve(value == expected);
           }, delay);
         });
@@ -89,6 +90,7 @@ describe("execution functions", () => {
     it("should return a promise", () => {
       expect(
         v8n()
+          .minLength(2)
           .asyncRule("Hello")
           .testAsync("Hello")
       ).toBeInstanceOf(Promise);
@@ -97,66 +99,9 @@ describe("execution functions", () => {
     it("should execute rules in sequence", () => {
       return expect(
         v8n()
-          .asyncRule("Hello")
-          .not.string()
-          .testAsync("Hello")
-      ).resolves.toBeFalsy();
-    });
-
-    it("should work with the 'not' modifier", () => {
-      return expect(
-        v8n()
-          .string()
-          .not.asyncRule("Hello")
-          .testAsync("Hello")
-      ).resolves.toBeFalsy();
-    });
-
-    describe("the returned Promise", () => {
-      it("should resolves to 'true' when valid", () => {
-        return expect(
-          v8n()
-            .minLength(2)
-            .asyncRule("Hello")
-            .testAsync("Hello")
-        ).resolves.toBeTruthy();
-      });
-
-      it("should resolves to 'false' when not valid", () => {
-        return expect(
-          v8n()
-            .minLength(2)
-            .asyncRule("Hello")
-            .testAsync("Hi")
-        ).resolves.toBeFalsy();
-      });
-
-      it("should resolves to 'false' if an exception occurs", () => {
-        return expect(
-          v8n()
-            .includes("A")
-            .testAsync(10)
-        ).resolves.toBeFalsy();
-      });
-    });
-  });
-
-  describe("the 'checkAsync' function", () => {
-    it("should return a promise", () => {
-      expect(
-        v8n()
           .minLength(2)
           .asyncRule("Hello")
-          .checkAsync("Hello")
-      ).toBeInstanceOf(Promise);
-    });
-
-    it("should execute rules in sequence", () => {
-      return expect(
-        v8n()
-          .minLength(2)
-          .asyncRule("Hello")
-          .checkAsync("Hello")
+          .testAsync("Hello")
       ).resolves.toBe("Hello");
     });
 
@@ -165,7 +110,7 @@ describe("execution functions", () => {
         .minLength(2)
         .not.asyncRule("Hello");
 
-      return expect(validation.checkAsync("Hello")).rejects.toEqual({
+      return expect(validation.testAsync("Hello")).rejects.toEqual({
         cause: "Rule failed",
         rule: validation.chain[1],
         value: "Hello"
@@ -188,7 +133,7 @@ describe("execution functions", () => {
           v8n()
             .minLength(2)
             .asyncRule("Hello")
-            .checkAsync("Hello")
+            .testAsync("Hello")
         ).resolves.toBe("Hello");
       });
 
@@ -197,7 +142,7 @@ describe("execution functions", () => {
           .minLength(2)
           .asyncRule("Hello");
 
-        return expect(validation.checkAsync("Hi")).rejects.toMatchObject({
+        return expect(validation.testAsync("Hi")).rejects.toMatchObject({
           rule: validation.chain[1],
           value: "Hi"
         });
@@ -209,7 +154,7 @@ describe("execution functions", () => {
           .between(0, 50)
           .includes("a");
 
-        return expect(validation.checkAsync(10)).rejects.toMatchObject({
+        return expect(validation.testAsync(10)).rejects.toMatchObject({
           rule: validation.chain[2],
           value: 10
         });
@@ -845,11 +790,11 @@ describe("random tests", () => {
       .asyncRule(10, 20)
       .not.even();
 
-    await expect(validation.testAsync("12")).resolves.toBeFalsy();
-    await expect(validation.testAsync(12)).resolves.toBeFalsy();
-    await expect(validation.testAsync(10)).resolves.toBeFalsy();
-    await expect(validation.testAsync(20)).resolves.toBeFalsy();
-    await expect(validation.testAsync(13)).resolves.toBeTruthy();
+    await expect(validation.testAsync("12")).rejects.toBeDefined();
+    await expect(validation.testAsync(12)).rejects.toBeDefined();
+    await expect(validation.testAsync(10)).rejects.toBeDefined();
+    await expect(validation.testAsync(20)).rejects.toBeDefined();
+    await expect(validation.testAsync(13)).resolves.toBe(13);
   });
 });
 
