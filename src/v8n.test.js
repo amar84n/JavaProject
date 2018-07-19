@@ -130,6 +130,14 @@ describe("execution functions", () => {
             .testAsync("Hi")
         ).resolves.toBeFalsy();
       });
+
+      it("should resolves to 'false' if an exception occurs", () => {
+        return expect(
+          v8n()
+            .includes("A")
+            .testAsync(10)
+        ).resolves.toBeFalsy();
+      });
     });
   });
 
@@ -157,12 +165,24 @@ describe("execution functions", () => {
         .minLength(2)
         .not.asyncRule("Hello");
 
-      return expect(validation.checkAsync("Hello")).rejects.toBe(
-        validation.chain[1]
-      );
+      return expect(validation.checkAsync("Hello")).rejects.toEqual({
+        cause: "Rule failed",
+        rule: validation.chain[1],
+        value: "Hello"
+      });
     });
 
     describe("the returned Promise", () => {
+      function asyncRule(expected, delay, exception) {
+        return value =>
+          new Promise(resolve => {
+            setTimeout(() => {
+              if (exception) throw exception;
+              resolve(value == expected);
+            }, delay);
+          });
+      }
+
       it("should resolves when valid", () => {
         return expect(
           v8n()
@@ -172,15 +192,27 @@ describe("execution functions", () => {
         ).resolves.toBe("Hello");
       });
 
-      it("should rejects with the failed rule when invalid", () => {
+      it("should rejects with ValidationException when invalid", () => {
         const validation = v8n()
           .minLength(2)
           .asyncRule("Hello");
 
-        return expect(validation.checkAsync("Hi")).rejects.toBe(
-          // asyncRule has failed
-          validation.chain[1]
-        );
+        return expect(validation.checkAsync("Hi")).rejects.toMatchObject({
+          rule: validation.chain[1],
+          value: "Hi"
+        });
+      });
+
+      it("should rejects with with ValidationException when exception occurs", () => {
+        const validation = v8n()
+          .number()
+          .between(0, 50)
+          .includes("a");
+
+        return expect(validation.checkAsync(10)).rejects.toMatchObject({
+          rule: validation.chain[2],
+          value: 10
+        });
       });
     });
   });

@@ -290,9 +290,9 @@ const core = {
    * Performs asynchronous failed-rule based validation.
    *
    * When this function is used it performs the validation process
-   * asynchronously, and it returns a promise that resolves to nothing when the
-   * validated value is valid and rejects with the first failed
-   * {@link Rule rule} when it's invalid.
+   * asynchronously, and it returns a promise that resolves to the validated
+   * value when it's valid and rejects with a {@link ValidationException} when
+   * it's invalid or when an exception occur.
    *
    * > To learn more about asynchronous validation, look at the
    * > [Validation](#Validation) section.
@@ -300,9 +300,11 @@ const core = {
    * > For a validation strategy with non promise-based rules, you'd better use
    * > the [check](#check) function.
    *
+   * @see ValidationException
    * @param {any} value the value to be validated
-   * @returns {Promise} promise that rejects with the first-failed
-   * {@link Rule rule} when value is invalid
+   * @returns {Promise} promise that rejects with a {@link ValidationException}
+   * when value is valid or an exception occurs {@link Rule rule} when value is
+   * invalid
    */
   checkAsync(value) {
     return executeAsyncRules(value, this.chain);
@@ -318,15 +320,18 @@ function executeAsyncRules(value, rules) {
 function executeAsyncRulesAux(value, rules, resolve, reject) {
   if (rules.length > 0) {
     const rule = rules.shift();
-    const result = Promise.resolve(rule.fn(value));
-
-    result.then(valid => {
-      if (valid !== rule.invert) {
-        executeAsyncRulesAux(value, rules, resolve, reject);
-      } else {
-        reject(rule);
-      }
-    });
+    try {
+      const result = Promise.resolve(rule.fn(value));
+      result.then(valid => {
+        if (valid !== rule.invert) {
+          executeAsyncRulesAux(value, rules, resolve, reject);
+        } else {
+          reject(new ValidationException(rule, value, "Rule failed"));
+        }
+      });
+    } catch (cause) {
+      reject(new ValidationException(rule, value, cause));
+    }
   } else {
     resolve(value);
   }
