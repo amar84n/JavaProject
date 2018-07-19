@@ -638,9 +638,8 @@ it's invalid or when an exception occurs.
 
 -   `value` **any** the value to be validated
 
-Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)** promise that rejects with a [ValidationException](#validationexception)
-when value is valid or an exception occurs [rule](#rule) when value is
-invalid
+Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)** promise that resolves to the validated value or rejects
+with a [ValidationException](#validationexception)
 
 ### ValidationException
 

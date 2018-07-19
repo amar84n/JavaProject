@@ -302,9 +302,8 @@ const core = {
    *
    * @see ValidationException
    * @param {any} value the value to be validated
-   * @returns {Promise} promise that rejects with a {@link ValidationException}
-   * when value is valid or an exception occurs {@link Rule rule} when value is
-   * invalid
+   * @returns {Promise} promise that resolves to the validated value or rejects
+   * with a {@link ValidationException}
    */
   checkAsync(value) {
     return executeAsyncRules(value, this.chain);
